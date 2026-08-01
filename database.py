@@ -5,8 +5,11 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 import os
 
-# Fetch from environment or fallback to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./appointments_db.db")
+# Fetch from environment (Vercel Postgres or custom DATABASE_URL) or fallback to SQLite
+# Vercel provides POSTGRES_URL_NON_POOLING and POSTGRES_URL
+postgres_url = os.getenv("POSTGRES_URL_NON_POOLING", os.getenv("POSTGRES_URL", os.getenv("DATABASE_URL")))
+# Vercel functions are read-only except for /tmp
+DATABASE_URL = postgres_url if postgres_url else "sqlite:////tmp/appointments_db.db"
 
 # Fix for some cloud providers that give 'postgres://' instead of 'postgresql://'
 if DATABASE_URL.startswith("postgres://"):

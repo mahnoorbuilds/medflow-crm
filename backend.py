@@ -11,7 +11,8 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-init_db()
+# Tables should be initialized once via a script, not on every serverless invocation!
+# init_db()
 
 # Step3: Create Data Contracts using Pydantic Models
 import datetime as dt
@@ -186,6 +187,12 @@ def get_stats(db: Session = Depends(get_db)):
         "canceled": canceled,
     }
 
+
+@app.get("/api/init")
+def init_tables():
+    from database import init_db
+    init_db()
+    return {"status": "ok", "message": "Tables created."}
 
 @app.get("/api/appointments")
 def get_appointments(
