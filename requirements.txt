@@ -1,4 +1,4 @@
 fastapi>=0.128.0
 sqlalchemy>=2.0.46
 uvicorn>=0.40.0
-psycopg2-binary>=2.9.9
+pg8000>=1.31.2

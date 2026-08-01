@@ -259,6 +259,11 @@ def search_appointments(
 
 # ─── VAPI Webhook Endpoint ─────────────────────
 
+@app.get("/vapi/webhook")
+async def vapi_webhook_get():
+    """Friendly response for users checking the webhook URL in their browser."""
+    return {"status": "Webhook is active. Please configure VAPI to send POST requests to this URL."}
+
 @app.post("/vapi/webhook")
 async def vapi_webhook(request: Request):
     """Single endpoint for VAPI server URL.
@@ -284,10 +289,15 @@ async def vapi_webhook(request: Request):
                 raw_args = func.get("arguments", "{}")
 
                 # arguments can be a string or dict
-                if isinstance(raw_args, str):
-                    args = json.loads(raw_args)
-                else:
-                    args = raw_args
+                try:
+                    if isinstance(raw_args, str):
+                        args = json.loads(raw_args)
+                    else:
+                        args = raw_args
+                except json.JSONDecodeError:
+                    logger.error(f"  Error decoding JSON arguments: {raw_args}")
+                    results.append({"toolCallId": tool_call_id, "result": "Error: Invalid JSON in arguments"})
+                    continue
 
                 logger.info(f"  Tool call: {func_name} | args={args}")
 
