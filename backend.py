@@ -312,15 +312,41 @@ async def vapi_webhook(request: Request):
             db.close()
 
         return {"results": results}
+    else:
+        logger.warning(f"Unknown message type: {msg_type} | body={body}")
+        return {"status": "ignored"}
 
-    # ── status-update / end-of-call-report: just acknowledge ──
-    if msg_type in ("status-update", "end-of-call-report"):
-        logger.info(f"  Payload: {json.dumps(message, default=str)[:500]}")
-        return {"ok": True}
+# ─── Direct Custom Tool Endpoints ───────────────
 
-    # ── fallback for unknown types ──
-    logger.warning(f"  Unknown message type: {msg_type}")
-    return {"ok": True}
+@app.post("/api/schedule_appointment")
+async def api_schedule_appointment(request: Request):
+    """Direct REST endpoint for VAPI Custom Tool."""
+    db = next(get_db())
+    try:
+        args = await request.json()
+        logger.info(f"Direct tool call schedule_appointment | args={args}")
+        result_text = _dispatch_tool("schedule_appointment", args, db)
+        return {"result": result_text}
+    except Exception as exc:
+        logger.error(f"Error in api_schedule_appointment: {exc}")
+        return {"result": f"Error: {exc}"}
+    finally:
+        db.close()
+
+@app.post("/api/list_appointments")
+async def api_list_appointments(request: Request):
+    """Direct REST endpoint for VAPI Custom Tool."""
+    db = next(get_db())
+    try:
+        args = await request.json()
+        logger.info(f"Direct tool call list_appointments | args={args}")
+        result_text = _dispatch_tool("list_appointments", args, db)
+        return {"result": result_text}
+    except Exception as exc:
+        logger.error(f"Error in api_list_appointments: {exc}")
+        return {"result": f"Error: {exc}"}
+    finally:
+        db.close()
 
 
 def _dispatch_tool(func_name: str, args: dict, db: Session) -> str:
