@@ -378,6 +378,22 @@ async def api_check_doctor_availability(request: Request):
     finally:
         db.close()
 
+@app.post("/api/Cancel_appointment")
+@app.post("/api/cancel_appointment")
+async def api_cancel_appointment(request: Request):
+    """Direct REST endpoint for VAPI Custom Tool."""
+    db = next(get_db())
+    try:
+        args = await request.json()
+        logger.info(f"Direct tool call cancel_appointment | args={args}")
+        result_text = _dispatch_tool("cancel_appointment", args, db)
+        return {"result": result_text}
+    except Exception as exc:
+        logger.error(f"Error in api_cancel_appointment: {exc}")
+        return {"result": f"Error: {exc}"}
+    finally:
+        db.close()
+
 
 def _dispatch_tool(func_name: str, args: dict, db: Session) -> str:
     """Route a VAPI tool call to the matching business logic."""
